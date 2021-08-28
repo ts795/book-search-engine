@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
 
-import { deleteBook } from '../utils/API';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 import { useQuery } from '@apollo/client';
 import { GET_ME } from '../utils/queries';
+import { useMutation } from '@apollo/client';
+import { REMOVE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
-  const [userData, setUserData] = useState({});
-
-  // use this to determine if `useEffect()` hook needs to run again
-  const userDataLength = Object.keys(userData).length;
-
+  const [userData, setUserData] = useState({})
+  const [removeBook, { error, removeBookData }] = useMutation(REMOVE_BOOK);
   const { loading, data } = useQuery(GET_ME, {
   });
 
-  if (data) {
-    setUserData(data);
-  } else {
-    setUserData({});
+  if (data && Object.keys(userData).length === 0) {
+    // Set initial data
+    console.log("Setting user data");
+    setUserData(data.me);
   }
 
+  //console.log(userData);
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
@@ -31,14 +30,10 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const updatedUser = await response.json();
-      setUserData(updatedUser);
+      const { data } = await removeBook({
+        variables: { bookId },
+      });
+      setUserData(data.removeBook);
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
@@ -47,7 +42,7 @@ const SavedBooks = () => {
   };
 
   // if data isn't here yet, say so
-  if (!userDataLength) {
+  if (loading || !userData.savedBooks) {
     return <h2>LOADING...</h2>;
   }
 

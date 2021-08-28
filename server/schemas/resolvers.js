@@ -9,7 +9,8 @@ const resolvers = {
             if (context.user) {
                 const foundUser = await User.findOne({
                     $or: [{ _id: context.user._id }, { username: context.user.username }],
-                });
+                },
+                "-password");
                 return foundUser;
             }
             throw new AuthenticationError('You need to be logged in!');
@@ -65,6 +66,7 @@ const resolvers = {
                   if (!updatedUser) {
                     return "Couldn't find user with this id!";
                   }
+                  console.log("updatedUser", updatedUser);
                   return updatedUser;
             }
             throw new AuthenticationError('You need to be logged in!');
