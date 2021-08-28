@@ -4,7 +4,6 @@ import { Form, Button, Alert } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
 import { LOGIN_USER } from '../utils/mutations';
 
-import { loginUser } from '../utils/API';
 import Auth from '../utils/auth';
 
 const LoginForm = () => {
@@ -35,6 +34,7 @@ const LoginForm = () => {
       Auth.login(data.loginUser.token);
     } catch (e) {
       console.error(e);
+      setShowAlert(true);
     }
 
     setUserFormData({
